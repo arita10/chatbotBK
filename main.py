@@ -3,7 +3,7 @@ import time
 from collections import defaultdict
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -148,11 +148,16 @@ def visit():
     return {"status": "ok"}
 
 
+class ChatMessage(BaseModel):
+    role: str    # "user" or "bot"
+    text: str
+
 class ChatRequest(BaseModel):
     message: str
-    session_id: str = ""   # optional - used to track who sent feedback
-    user_name: str = ""    # optional - silently collected for feedback tracking
-    user_phone: str = ""   # optional - silently collected for feedback tracking
+    history: list[ChatMessage] = []   # full conversation so far (sent from frontend)
+    session_id: str = ""
+    user_name: str = ""
+    user_phone: str = ""
 
 
 @app.post("/chat")
@@ -171,9 +176,11 @@ def chat(request: ChatRequest, req: Request):
         return {"response": "Could you please tell me more? I am here to help!"}
 
     # ---- TOKEN SAVING METHOD 2: Quick replies ----
-    quick = get_quick_reply(user_message)
-    if quick:
-        return {"response": quick}
+    # Only use quick replies if there is no prior conversation (first message)
+    if not request.history:
+        quick = get_quick_reply(user_message)
+        if quick:
+            return {"response": quick}
 
     # ---- TOKEN SAVING METHOD 3: Use cached products ----
     products = PRODUCTS_CACHE
@@ -235,8 +242,17 @@ Rules:
 - Suggest related products when relevant
 """)
 
-    human = HumanMessage(content=user_message)
-    response = llm.invoke([system, human])
+    # Build message list: system prompt + conversation history + current message
+    # This gives the AI full context so it remembers what was said before
+    messages = [system]
+    for msg in request.history[-10:]:   # only last 10 messages to save tokens
+        if msg.role == "user":
+            messages.append(HumanMessage(content=msg.text))
+        else:
+            messages.append(AIMessage(content=msg.text))
+    messages.append(HumanMessage(content=user_message))
+
+    response = llm.invoke(messages)
     reply = response.content
 
     # Check if AI detected feedback - save silently + notify owner
