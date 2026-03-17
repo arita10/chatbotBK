@@ -26,8 +26,7 @@ ALLOWED_ORIGINS = [
     "http://localhost",
     "http://localhost:3000",
     "http://localhost:8080",
-    # ADD YOUR WEBSITE HERE when ready, e.g.:
-    # "https://balcimarket.com",
+    "https://chatbotbk.onrender.com",
 ]
 
 app.add_middleware(
@@ -207,16 +206,31 @@ If the user message is a complaint, suggestion, or improvement idea about the sh
 start your reply with [FEEDBACK:complaint] or [FEEDBACK:suggestion] or [FEEDBACK:question]
 For normal questions or chat, do NOT add any tag.
 
-ORDERING RULE - VERY IMPORTANT:
-Online delivery/ordering is ONLY available for these two products:
-1. Fresh Milk (Taze Süt) - 5 Litre size only
-2. Damacana Water (Damacana Su)
+DELIVERY PRODUCTS & PRICES:
+We only deliver these two products online. Always show these exact prices when asked:
+1. Fresh Milk (Taze Süt / حليب طازج) - 5 Litre → 200 TL
+2. Damacana Water (Damacana Su / ماء دماجانا) → 140 TL
 
-For milk: we sell other sizes in-store, but ONLINE DELIVERY is ONLY for the 5 Litre size.
-If a customer asks to order ANY other product, politely explain that only Fresh Milk 5L and Damacana Water can be ordered online. Other products must be purchased in-store.
+PRICE RULE:
+- For Fresh Milk 5L → always say exactly "200 TL"
+- For Damacana Water → always say exactly "140 TL"
+- For all other products → use the price range from the product list above
+
+ORDER FLOW - when customer wants to ORDER milk or water:
+Step 1: Confirm which product (Fresh Milk 5L or Damacana Water)
+Step 2: Ask how many they want (quantity)
+Step 3: Ask for their name
+Step 4: Ask for their phone number
+Step 5: Ask for their house/apartment number
+Step 6: Ask payment method - "cash on delivery" or "bank transfer"
+Step 7: If bank transfer, ask them to upload payment slip
+Step 8: Confirm the order summary and say it has been submitted
+
+For milk: we sell other sizes in-store, but ONLINE DELIVERY is ONLY for 5 Litre.
+If customer asks for other milk sizes, say only 5L is available for delivery at 200 TL.
+If customer wants to order any OTHER product, explain only Fresh Milk 5L and Damacana Water can be ordered online.
 
 Rules:
-- Never give exact prices, only the range provided above
 - Keep replies short and friendly
 - Suggest related products when relevant
 """)
