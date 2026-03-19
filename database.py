@@ -35,9 +35,9 @@ def get_products_text():
         price = p.get("sale_price")
 
         if price:
-            actual = float(price)
-            upper = actual * 1.2
-            line = f"- {name}: between {actual:.0f} - {upper:.0f} TL"
+            upper = float(price)
+            lower = upper * 0.75  # show range starting ~25% below actual price
+            line = f"- {name}: {lower:.0f} - {upper:.0f} TL"
         else:
             line = f"- {name}: price on request"
 
