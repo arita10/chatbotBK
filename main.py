@@ -1,4 +1,3 @@
-import os
 import time
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -138,6 +137,27 @@ def home():
     return {"Message": "Welcome to Balci Market Chatbot!"}
 
 
+@app.get("/welcome")
+def welcome():
+    """
+    Returns the static welcome message shown when the chatbot first opens.
+    NO AI call = zero token cost.
+    """
+    return {
+        "message": "Merhaba komşum! 👋 Ben BALCI Market Dijital Asistanı. Bayram hazırlığın için buradayım. Fiyatlarımızı merak ediyorsan aşağıdaki butonlara basman yeterli. Biz büyük market değiliz ama sizin komşunuzuz, her zaman en iyisini getirmeye çalışıyoruz! 🏠✨"
+    }
+
+
+@app.get("/campaign")
+def campaign():
+    """
+    Returns the static campaign message. NO AI call = zero token cost.
+    """
+    return {
+        "message": "🌟 BAYRAM FIRSATLARI BAŞLADI! 🌟\n\nBayram temizliğinin yıldızları şimdi en dip fiyatlarla dükkanımızda:\n\n👉 Papia T. Kağıdı: 105 TL\n👉 Papia Havlu Kağıt: 135 TL\n👉 Mr. Oxy Yüzey Havlusu: 75 TL\n👉 Viking Çamaşır Suyu: 75 TL\n👉 Penax Gold Kapsül: 199 TL\n👉 Bingo 40'lı Kapsül: 239 TL\n\n✨ Erenler'in en hesaplı adresi! Hayırlı Bayramlar dileriz. ✨"
+    }
+
+
 @app.post("/visit")
 def visit():
     """
@@ -186,61 +206,18 @@ def chat(request: ChatRequest, req: Request):
     products = PRODUCTS_CACHE
 
     # Only reaches here if message needs real AI - costs tokens
-    system = SystemMessage(content=f"""You are a friendly assistant for Balci Market, a local grocery store.
-You talk like a warm friendly shopkeeper who genuinely cares about customers.
+    system = SystemMessage(content=f"""Balci Market asistanısın. Sıcak, komşuca bir üslup kullan.
+Reply in the SAME language the user writes (EN/TR/AR). Detect from user text, not product names.
 
-VERY IMPORTANT: You MUST detect the language of the user's message and reply in THAT SAME language.
-- If user writes in English → reply in English only
-- If user writes in Arabic → reply in Arabic only
-- If user writes in Turkish → reply in Turkish only
-- Detect language from what the USER types, NOT from product names
+Products: {products}
 
-Our products (these are just product names, do not use them to detect language):
-{products}
+Delivery only: Fresh Milk 5L=200TL, Damacana Water=140TL. Other products in-store only.
 
-FRIENDLY SHOPKEEPER BEHAVIOR:
-- When customer mentions ANY product, ask what they will use it for or what they are making
-- Always suggest related products naturally based on what they said
-- Use warm phrases like "Great choice!", "Good idea!", "Our customers love that!"
-- End most replies with a helpful question to keep conversation going
+Order steps: 1)Confirm product 2)Quantity 3)Name 4)Phone 5)House no 6)Payment(cash/transfer) 7)If transfer→slip upload 8)Confirm.
 
-GOODBYE DETECTION:
-If user says goodbye, thank you, bye, ok thanks, done, that's all, or anything that sounds like leaving:
-- Reply with a warm goodbye message matching their language
+Feedback: if complaint/suggestion/question about shop, prefix reply with [FEEDBACK:complaint], [FEEDBACK:suggestion], or [FEEDBACK:question].
 
-FEEDBACK DETECTION:
-If the user message is a complaint, suggestion, or improvement idea about the shop,
-start your reply with [FEEDBACK:complaint] or [FEEDBACK:suggestion] or [FEEDBACK:question]
-For normal questions or chat, do NOT add any tag.
-
-DELIVERY PRODUCTS & PRICES:
-We only deliver these two products online. Always show these exact prices when asked:
-1. Fresh Milk (Taze Süt / حليب طازج) - 5 Litre → 200 TL
-2. Damacana Water (Damacana Su / ماء دماجانا) → 140 TL
-
-PRICE RULE:
-- For Fresh Milk 5L → always say exactly "200 TL"
-- For Damacana Water → always say exactly "140 TL"
-- For all other products → use the price range from the product list above
-
-ORDER FLOW - when customer wants to ORDER milk or water:
-Step 1: Confirm which product (Fresh Milk 5L or Damacana Water)
-Step 2: Ask how many they want (quantity)
-Step 3: Ask for their name
-Step 4: Ask for their phone number
-Step 5: Ask for their house/apartment number
-Step 6: Ask payment method - "cash on delivery" or "bank transfer"
-Step 7: If bank transfer, ask them to upload payment slip
-Step 8: Confirm the order summary and say it has been submitted
-
-For milk: we sell other sizes in-store, but ONLINE DELIVERY is ONLY for 5 Litre.
-If customer asks for other milk sizes, say only 5L is available for delivery at 200 TL.
-If customer wants to order any OTHER product, explain only Fresh Milk 5L and Damacana Water can be ordered online.
-
-Rules:
-- Keep replies short and friendly
-- Suggest related products when relevant
-""")
+Keep replies short. Suggest related products. End with a helpful question.""")
 
     # Build message list: system prompt + conversation history + current message
     # This gives the AI full context so it remembers what was said before
