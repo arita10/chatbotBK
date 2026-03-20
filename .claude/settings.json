@@ -7,7 +7,8 @@
       "Bash(\"c:/Users/msapi/OneDrive/Documents/Balci market/Chatbot/venv/Scripts/pip.exe\" freeze)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\msapi\\.claude\\projects\\c--Users-msapi-OneDrive-Documents-Balci-market-Chatbot"
+      "C:\\Users\\msapi\\.claude\\projects\\c--Users-msapi-OneDrive-Documents-Balci-market-Chatbot",
+      "c:\\Users\\msapi\\OneDrive\\Documents\\Balci market\\ChatBotFront\\src"
     ]
   }
 }
