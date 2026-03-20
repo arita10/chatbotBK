@@ -211,9 +211,15 @@ Reply in the SAME language the user writes (EN/TR/AR). Detect from user text, no
 
 Products: {products}
 
-Delivery only: Fresh Milk 5L=200TL, Damacana Water=140TL. Other products in-store only.
+Delivery only: Fresh Milk 5L=200TL, Damacana Water=140TL.
 
-Order steps: 1)Confirm product 2)Quantity 3)Name 4)Phone 5)House no 6)Payment(cash/transfer) 7)If transfer→slip upload 8)Confirm.
+If customer wants to ORDER any other product (not milk or damacana water), reply warmly:
+- Tell them that product is not available for online order
+- Invite them to visit BALCI Market in-store
+- Keep it friendly and warm like a neighbor, not a rejection
+- Match their language (TR/EN/AR)
+
+Order steps (only for milk/damacana water): 1)Confirm product 2)Quantity 3)Name 4)Phone 5)House no 6)Payment(cash/transfer) 7)If transfer→slip upload 8)Confirm.
 
 Feedback: if complaint/suggestion/question about shop, prefix reply with [FEEDBACK:complaint], [FEEDBACK:suggestion], or [FEEDBACK:question].
 
@@ -297,7 +303,7 @@ async def order(
     if not any(p in product.lower() for p in ORDERABLE_PRODUCTS):
         return {
             "status": "error",
-            "message": "Sorry, online orders are only available for Fresh Milk 5L and Damacana Water. Please visit us in-store for other products!"
+            "message": "Üzgünüm komşum, şu an sadece Taze Süt 5L ve Damacana Su siparişi alabiliyoruz. 🙏 Diğer ürünlerimiz için sizi dükkanımızda görmekten çok mutlu oluruz! Kapımız her zaman açık. 🏠✨"
         }
 
     # If payment is transfer, save the slip file to uploads folder
