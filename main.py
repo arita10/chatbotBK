@@ -137,6 +137,16 @@ def home():
     return {"Message": "Welcome to Balci Market Chatbot!"}
 
 
+@app.get("/debug/products")
+def debug_products():
+    count = len(PRODUCTS_CACHE.split("\n")) if PRODUCTS_CACHE != "Products temporarily unavailable." else 0
+    return {
+        "status": "loaded" if count > 0 else "failed",
+        "product_count": count,
+        "sample": PRODUCTS_CACHE[:300]
+    }
+
+
 @app.get("/welcome")
 def welcome():
     """
