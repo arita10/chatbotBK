@@ -60,7 +60,7 @@ def save_order(customer_name, phone, house_no, product, quantity, slip_filename)
         "slip_filename": slip_filename,
     }
     response = requests.post(
-        f"{SUPABASE_URL}/rest/v1/chatbot_orders",
+        f"{SUPABASE_URL}/rest/v1/ch_chatbot_orders",
         headers=_headers(),
         json=data,
         timeout=10,
@@ -77,7 +77,7 @@ def save_feedback(feedback_type, message, user_name="", user_phone="", session_i
         "session_id": session_id,
     }
     response = requests.post(
-        f"{SUPABASE_URL}/rest/v1/chatbot_feedback",
+        f"{SUPABASE_URL}/rest/v1/ch_chatbot_feedback",
         headers=_headers(),
         json=data,
         timeout=10,
@@ -89,7 +89,7 @@ def record_visit():
     # Upsert today's visit count using Supabase REST API
     # First try to increment, if no row exists insert one
     requests.post(
-        f"{SUPABASE_URL}/rest/v1/chatbot_visits",
+        f"{SUPABASE_URL}/rest/v1/ch_chatbot_visits",
         headers={**_headers(), "Prefer": "resolution=merge-duplicates"},
         json={"visit_date": "now()", "count": 1},
         timeout=10,
