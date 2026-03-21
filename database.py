@@ -1,43 +1,30 @@
 import os
-from sqlalchemy import create_engine, text
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Single shared engine — created once at startup, reused by all requests
-# pool_size=3: max 3 persistent connections kept open
-# max_overflow=2: allow 2 extra connections under heavy load (total max 5)
-# pool_timeout=30: wait up to 30s for a free connection before erroring
-# pool_recycle=1800: recycle connections every 30min to avoid Aiven idle timeout
-_engine = None
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-def get_engine():
-    global _engine
-    if _engine is None:
-        db_url = os.getenv("DATABASE_URL")
-        # Aiven gives 'postgres://...' but SQLAlchemy needs 'postgresql://...'
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
-        # Detect if using PgBouncer (port 6543) — it doesn't support pre_ping
-        is_pgbouncer = ":6543/" in db_url
-        _engine = create_engine(
-            db_url,
-            pool_pre_ping=not is_pgbouncer,  # disable for PgBouncer
-            pool_size=3,
-            max_overflow=2,
-            pool_timeout=30,
-            pool_recycle=1800,
-        )
-    return _engine
+# Headers used for every Supabase REST API call
+def _headers():
+    return {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+    }
+
 
 def get_product():
-    engine = get_engine()
-
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM ch_products"))
-        columns = result.keys()
-        products = [dict(zip(columns, row)) for row in result]
-    return products
+    # Fetch all products from ch_products table via Supabase REST API
+    response = requests.get(
+        f"{SUPABASE_URL}/rest/v1/ch_products?select=product_name,sale_price",
+        headers=_headers(),
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def get_products_text():
@@ -62,53 +49,56 @@ def get_products_text():
 
     return "\n".join(lines)
 
+
 def save_order(customer_name, phone, house_no, product, quantity, slip_filename):
-    engine = get_engine()
-    
-    with engine.connect() as conn:
-        conn.execute(text("""
-            INSERT INTO chatbot_orders (customer_name, phone, house_no, product, quantity, slip_filename)
-            VALUES (:name, :phone, :house_no, :product, :quantity, :slip)
-        """), {"name": customer_name, "phone": phone, "house_no": house_no,
-               "product": product, "quantity": quantity, "slip": slip_filename})
-        
-        conn.commit()
+    data = {
+        "customer_name": customer_name,
+        "phone": phone,
+        "house_no": house_no,
+        "product": product,
+        "quantity": quantity,
+        "slip_filename": slip_filename,
+    }
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/chatbot_orders",
+        headers=_headers(),
+        json=data,
+        timeout=10,
+    )
+    response.raise_for_status()
 
 
 def save_feedback(feedback_type, message, user_name="", user_phone="", session_id=""):
-    engine = get_engine()
-    
-    with engine.connect() as conn:
-        conn.execute(text("""
-            INSERT INTO chatbot_feedback (feedback_type, message, user_name, user_phone, session_id)
-            VALUES (:type, :message, :user_name, :user_phone, :session_id)
-        """), {"type": feedback_type, "message": message, 
-               "user_name": user_name, "user_phone": user_phone, 
-               "session_id": session_id})
-        
-        conn.commit()
+    data = {
+        "feedback_type": feedback_type,
+        "message": message,
+        "user_name": user_name,
+        "user_phone": user_phone,
+        "session_id": session_id,
+    }
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/chatbot_feedback",
+        headers=_headers(),
+        json=data,
+        timeout=10,
+    )
+    response.raise_for_status()
 
 
 def record_visit():
-    """
-    Called once when a user opens the chatbot.
-    Adds 1 to today's visit count.
-    If today has no row yet, it creates one starting at 1.
-    """
-    engine = get_engine()
-    with engine.connect() as conn:
-        conn.execute(text("""
-            INSERT INTO chatbot_visits (visit_date, count)
-            VALUES (CURRENT_DATE, 1)
-            ON CONFLICT (visit_date)
-            DO UPDATE SET count = chatbot_visits.count + 1
-        """))
-        conn.commit()
+    # Upsert today's visit count using Supabase REST API
+    # First try to increment, if no row exists insert one
+    requests.post(
+        f"{SUPABASE_URL}/rest/v1/chatbot_visits",
+        headers={**_headers(), "Prefer": "resolution=merge-duplicates"},
+        json={"visit_date": "now()", "count": 1},
+        timeout=10,
+    )
 
 
 if __name__ == "__main__":
-    print("Testing database connection...")
+    print("Testing Supabase connection...")
     products = get_product()
     print(f"Found {len(products)} products")
     print("\nFormatted for AI:")
-    print(get_products_text())
+    print(get_products_text()[:500])
