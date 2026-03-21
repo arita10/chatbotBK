@@ -1,23 +1,40 @@
 import os
-from sqlalchemy import create_engine, text  
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def get_engine():
-    db_url = os.getenv("DATABASE_URL")
+# Single shared engine — created once at startup, reused by all requests
+# pool_size=3: max 3 persistent connections kept open
+# max_overflow=2: allow 2 extra connections under heavy load (total max 5)
+# pool_timeout=30: wait up to 30s for a free connection before erroring
+# pool_recycle=1800: recycle connections every 30min to avoid Aiven idle timeout
+_engine = None
 
-    #Aiven givea 'postges://...' but SQLAlchemy needs 'postgresql://...'
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    
-    return create_engine(db_url,pool_pre_ping=True)
+def get_engine():
+    global _engine
+    if _engine is None:
+        db_url = os.getenv("DATABASE_URL")
+        # Aiven gives 'postgres://...' but SQLAlchemy needs 'postgresql://...'
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        # Detect if using PgBouncer (port 6543) — it doesn't support pre_ping
+        is_pgbouncer = ":6543/" in db_url
+        _engine = create_engine(
+            db_url,
+            pool_pre_ping=not is_pgbouncer,  # disable for PgBouncer
+            pool_size=3,
+            max_overflow=2,
+            pool_timeout=30,
+            pool_recycle=1800,
+        )
+    return _engine
 
 def get_product():
     engine = get_engine()
-    
+
     with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM products"))
+        result = conn.execute(text("SELECT * FROM ch_products"))
         columns = result.keys()
         products = [dict(zip(columns, row)) for row in result]
     return products
