@@ -26,6 +26,7 @@ ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:8080",
     "https://chatbotbk.onrender.com",
+    "https://balci-market-bot.vercel.app",
 ]
 
 app.add_middleware(
