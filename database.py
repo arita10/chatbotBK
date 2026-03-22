@@ -96,14 +96,30 @@ def record_visit():
     )
 
 
+def _extract_unit(name):
+    """Extract weight/volume unit from product name e.g. '50g', '1kg', '1l', '500ml'"""
+    import re
+    match = re.search(r'(\d+[\.,]?\d*)\s*(kg|g|ml|l|lt|cl|adet|pk|paket)\b', name.lower())
+    if match:
+        qty = float(match.group(1).replace(",", "."))
+        unit = match.group(2)
+        # Normalize to grams/ml
+        if unit == "kg":
+            return qty * 1000, "g"
+        if unit in ("l", "lt"):
+            return qty * 1000, "ml"
+        return qty, unit
+    return None, None
+
+
 def get_cheaper_products(limit=10):
     """
     Compare ch_products with sp_products using fuzzy name matching.
+    Only compares products with matching units/weights.
     Returns only products where Balci Market is cheaper than competitors.
     """
     from rapidfuzz import fuzz
 
-    # Fetch our products
     our_resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/ch_products?select=product_name,sale_price",
         headers=_headers(), timeout=10
@@ -111,7 +127,6 @@ def get_cheaper_products(limit=10):
     our_resp.raise_for_status()
     our_products = our_resp.json()
 
-    # Fetch competitor products
     comp_resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price&limit=2000",
         headers=_headers(), timeout=10
@@ -127,29 +142,38 @@ def get_cheaper_products(limit=10):
         if not our_price or not our_name:
             continue
         our_price = float(our_price)
+        our_qty, our_unit = _extract_unit(our_name)
 
-        # Find best fuzzy match in competitor products
         best_score = 0
         best_match = None
         for comp in comp_products:
             comp_name = comp.get("product_name", "")
             score = fuzz.token_sort_ratio(our_name.lower(), comp_name.lower())
-            if score > best_score:
-                best_score = score
-                best_match = comp
+            if score <= best_score:
+                continue
 
-        # Only consider matches above 60% similarity
-        if best_score >= 60 and best_match:
+            # If our product has a unit, competitor must match it
+            if our_qty and our_unit:
+                comp_qty, comp_unit = _extract_unit(comp_name)
+                if not comp_qty or comp_unit != our_unit:
+                    continue
+                # Allow 20% tolerance in quantity (e.g. 130g vs 135g is ok)
+                if abs(our_qty - comp_qty) / our_qty > 0.20:
+                    continue
+
+            best_score = score
+            best_match = comp
+
+        # Require 70% similarity for reliable matches
+        if best_score >= 70 and best_match:
             comp_price_raw = best_match.get("latest_price")
             if not comp_price_raw:
                 continue
-            # Clean price string like "89,90" → 89.90
             try:
                 comp_price = float(str(comp_price_raw).replace(",", ".").replace(" TL", "").strip())
             except ValueError:
                 continue
 
-            # Only add if our price is cheaper
             if our_price < comp_price:
                 cheaper.append({
                     "our_name": our_name,
@@ -161,7 +185,6 @@ def get_cheaper_products(limit=10):
                     "match_score": best_score,
                 })
 
-    # Sort by biggest savings first, return top N
     cheaper.sort(key=lambda x: x["savings"], reverse=True)
     return cheaper[:limit]
 
