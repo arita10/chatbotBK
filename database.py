@@ -192,7 +192,7 @@ def get_cheaper_products(limit=10):
             if our_price < comp_price:
                 entry["savings"] = round(comp_price - our_price, 2)
                 cheaper.append(entry)
-            elif abs(our_price - comp_price) < 1.0:  # within 1 TL = equal
+            elif abs(our_price - comp_price) < 5.0 and our_price <= comp_price:  # within 5 TL and we are not more expensive
                 entry["savings"] = 0
                 equal.append(entry)
 
