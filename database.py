@@ -128,7 +128,7 @@ def get_cheaper_products(limit=10):
     our_products = our_resp.json()
 
     comp_resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price&limit=2000",
+        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price&market_name=neq.Bizim Toptan&limit=2000",
         headers=_headers(), timeout=10
     )
     comp_resp.raise_for_status()
@@ -148,6 +148,10 @@ def get_cheaper_products(limit=10):
         best_match = None
         for comp in comp_products:
             comp_name = comp.get("product_name", "")
+            # Skip bulk/multi-packs from competitors
+            import re
+            if re.search(r'\d+\s*x\s*\d+|\d+\'lü|\d+\'li|\'lü|\'li', comp_name.lower()):
+                continue
             score = fuzz.token_sort_ratio(our_name.lower(), comp_name.lower())
             if score <= best_score:
                 continue
@@ -164,8 +168,8 @@ def get_cheaper_products(limit=10):
             best_score = score
             best_match = comp
 
-        # Require 70% similarity for reliable matches
-        if best_score >= 70 and best_match:
+        # Require 80% similarity for reliable matches
+        if best_score >= 80 and best_match:
             comp_price_raw = best_match.get("latest_price")
             if not comp_price_raw:
                 continue
