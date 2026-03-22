@@ -67,13 +67,14 @@ except Exception as e:
     PRODUCTS_CACHE = "Products temporarily unavailable."
 
 # Pre-compute price comparison at startup so /compare is instant
-# This runs once and takes ~10s — after that every user gets instant results
 try:
     COMPARE_CACHE = get_cheaper_products(limit=10)
-    print(f"Price comparison loaded: {len(COMPARE_CACHE)} cheaper products found")
+    cheaper_count = len(COMPARE_CACHE.get("cheaper", []))
+    equal_count = len(COMPARE_CACHE.get("equal", []))
+    print(f"Price comparison loaded: {cheaper_count} cheaper, {equal_count} equal products found")
 except Exception as e:
     print(f"Warning: Could not load price comparison at startup: {e}")
-    COMPARE_CACHE = []
+    COMPARE_CACHE = {"cheaper": [], "equal": []}
 
 # ============================================================
 # ORDERABLE PRODUCTS: Only these two products can be ordered
@@ -171,18 +172,37 @@ def welcome():
 @app.get("/compare")
 def compare():
     """Returns pre-computed price comparison from startup cache — instant response."""
-    if not COMPARE_CACHE:
+    cheaper = COMPARE_CACHE.get("cheaper", [])
+    equal = COMPARE_CACHE.get("equal", [])
+
+    if not cheaper and not equal:
         return {"message": "Şu an karşılaştırma verisi bulunamadı."}
 
     lines = []
-    for r in COMPARE_CACHE:
-        lines.append(
-            f"✅ {r['our_name']} — Bizde: {r['our_price']:.0f} TL | "
-            f"{r['comp_market']}: {r['comp_price']:.0f} TL | "
-            f"💰 {r['savings']:.0f} TL tasarruf!"
-        )
 
-    return {"message": "🎉 Bizde daha ucuz ürünler:\n\n" + "\n".join(lines)}
+    if cheaper:
+        lines.append("🏆 BİZDE DAHA UCUZ:\n")
+        for r in cheaper:
+            line = (
+                f"✅ {r['our_name']}\n"
+                f"   Bizde: {r['our_price']:.2f} TL | {r['comp_market']}: {r['comp_price']:.2f} TL | 💰 {r['savings']:.2f} TL tasarruf!"
+            )
+            if r.get("comp_url"):
+                line += f"\n   🔗 {r['comp_market']} linki: {r['comp_url']}"
+            lines.append(line)
+
+    if equal:
+        lines.append("\n\n🤝 AYNI FİYAT:\n")
+        for r in equal:
+            line = (
+                f"🟰 {r['our_name']}\n"
+                f"   Bizde: {r['our_price']:.2f} TL | {r['comp_market']}: {r['comp_price']:.2f} TL"
+            )
+            if r.get("comp_url"):
+                line += f"\n   🔗 {r['comp_market']} linki: {r['comp_url']}"
+            lines.append(line)
+
+    return {"message": "\n".join(lines)}
 
 
 @app.get("/campaign")

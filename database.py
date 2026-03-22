@@ -128,13 +128,15 @@ def get_cheaper_products(limit=10):
     our_products = our_resp.json()
 
     comp_resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price&market_name=neq.Bizim Toptan&limit=2000",
+        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price,product_url&market_name=neq.Bizim Toptan&limit=2000",
         headers=_headers(), timeout=10
     )
     comp_resp.raise_for_status()
     comp_products = comp_resp.json()
 
+    import re
     cheaper = []
+    equal = []
 
     for our in our_products:
         our_name = our.get("product_name", "")
@@ -149,7 +151,6 @@ def get_cheaper_products(limit=10):
         for comp in comp_products:
             comp_name = comp.get("product_name", "")
             # Skip bulk/multi-packs from competitors
-            import re
             if re.search(r'\d+\s*x\s*\d+|\d+\'lü|\d+\'li|\'lü|\'li', comp_name.lower()):
                 continue
             score = fuzz.token_sort_ratio(our_name.lower(), comp_name.lower())
@@ -178,19 +179,26 @@ def get_cheaper_products(limit=10):
             except ValueError:
                 continue
 
+            entry = {
+                "our_name": our_name,
+                "our_price": our_price,
+                "comp_name": best_match.get("product_name"),
+                "comp_price": comp_price,
+                "comp_market": best_match.get("market_name"),
+                "comp_url": best_match.get("product_url", ""),
+                "match_score": best_score,
+            }
+
             if our_price < comp_price:
-                cheaper.append({
-                    "our_name": our_name,
-                    "our_price": our_price,
-                    "comp_name": best_match.get("product_name"),
-                    "comp_price": comp_price,
-                    "comp_market": best_match.get("market_name"),
-                    "savings": round(comp_price - our_price, 2),
-                    "match_score": best_score,
-                })
+                entry["savings"] = round(comp_price - our_price, 2)
+                cheaper.append(entry)
+            elif abs(our_price - comp_price) < 1.0:  # within 1 TL = equal
+                entry["savings"] = 0
+                equal.append(entry)
 
     cheaper.sort(key=lambda x: x["savings"], reverse=True)
-    return cheaper[:limit]
+    equal.sort(key=lambda x: x["our_price"], reverse=True)
+    return {"cheaper": cheaper[:limit], "equal": equal[:5]}
 
 
 if __name__ == "__main__":
