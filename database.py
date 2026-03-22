@@ -96,6 +96,76 @@ def record_visit():
     )
 
 
+def get_cheaper_products(limit=10):
+    """
+    Compare ch_products with sp_products using fuzzy name matching.
+    Returns only products where Balci Market is cheaper than competitors.
+    """
+    from rapidfuzz import fuzz
+
+    # Fetch our products
+    our_resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/ch_products?select=product_name,sale_price",
+        headers=_headers(), timeout=10
+    )
+    our_resp.raise_for_status()
+    our_products = our_resp.json()
+
+    # Fetch competitor products
+    comp_resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price&limit=2000",
+        headers=_headers(), timeout=10
+    )
+    comp_resp.raise_for_status()
+    comp_products = comp_resp.json()
+
+    cheaper = []
+
+    for our in our_products:
+        our_name = our.get("product_name", "")
+        our_price = our.get("sale_price")
+        if not our_price or not our_name:
+            continue
+        our_price = float(our_price)
+
+        # Find best fuzzy match in competitor products
+        best_score = 0
+        best_match = None
+        for comp in comp_products:
+            comp_name = comp.get("product_name", "")
+            score = fuzz.token_sort_ratio(our_name.lower(), comp_name.lower())
+            if score > best_score:
+                best_score = score
+                best_match = comp
+
+        # Only consider matches above 60% similarity
+        if best_score >= 60 and best_match:
+            comp_price_raw = best_match.get("latest_price")
+            if not comp_price_raw:
+                continue
+            # Clean price string like "89,90" → 89.90
+            try:
+                comp_price = float(str(comp_price_raw).replace(",", ".").replace(" TL", "").strip())
+            except ValueError:
+                continue
+
+            # Only add if our price is cheaper
+            if our_price < comp_price:
+                cheaper.append({
+                    "our_name": our_name,
+                    "our_price": our_price,
+                    "comp_name": best_match.get("product_name"),
+                    "comp_price": comp_price,
+                    "comp_market": best_match.get("market_name"),
+                    "savings": round(comp_price - our_price, 2),
+                    "match_score": best_score,
+                })
+
+    # Sort by biggest savings first, return top N
+    cheaper.sort(key=lambda x: x["savings"], reverse=True)
+    return cheaper[:limit]
+
+
 if __name__ == "__main__":
     print("Testing Supabase connection...")
     products = get_product()

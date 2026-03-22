@@ -7,7 +7,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
-from database import get_products_text, save_order, save_feedback, record_visit
+from database import get_products_text, save_order, save_feedback, record_visit, get_cheaper_products
 from telegram import send_message, send_photo
 
 load_dotenv()
@@ -157,6 +157,27 @@ def welcome():
     return {
         "message": "Merhaba komşum! 👋 Ben BALCI Market Dijital Asistanı. Bayram hazırlığın için buradayım. Fiyatlarımızı merak ediyorsan aşağıdaki butonlara basman yeterli. Biz büyük market değiliz ama sizin komşunuzuz, her zaman en iyisini getirmeye çalışıyoruz! 🏠✨"
     }
+
+
+@app.get("/compare")
+def compare():
+    """
+    Returns products where Balci Market is cheaper than competitors.
+    Cached for 1 hour to avoid slow fuzzy matching on every request.
+    """
+    results = get_cheaper_products(limit=10)
+    if not results:
+        return {"message": "Şu an karşılaştırma verisi bulunamadı."}
+
+    lines = []
+    for r in results:
+        lines.append(
+            f"✅ {r['our_name']} — Bizde: {r['our_price']:.0f} TL | "
+            f"{r['comp_market']}: {r['comp_price']:.0f} TL | "
+            f"💰 {r['savings']:.0f} TL tasarruf!"
+        )
+
+    return {"message": "🎉 Bizde daha ucuz ürünler:\n\n" + "\n".join(lines)}
 
 
 @app.get("/campaign")
