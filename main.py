@@ -66,6 +66,15 @@ except Exception as e:
     print(f"Warning: Could not load products at startup: {e}")
     PRODUCTS_CACHE = "Products temporarily unavailable."
 
+# Pre-compute price comparison at startup so /compare is instant
+# This runs once and takes ~10s — after that every user gets instant results
+try:
+    COMPARE_CACHE = get_cheaper_products(limit=10)
+    print(f"Price comparison loaded: {len(COMPARE_CACHE)} cheaper products found")
+except Exception as e:
+    print(f"Warning: Could not load price comparison at startup: {e}")
+    COMPARE_CACHE = []
+
 # ============================================================
 # ORDERABLE PRODUCTS: Only these two products can be ordered
 # If customer tries to order anything else, bot will politely refuse
@@ -161,16 +170,12 @@ def welcome():
 
 @app.get("/compare")
 def compare():
-    """
-    Returns products where Balci Market is cheaper than competitors.
-    Cached for 1 hour to avoid slow fuzzy matching on every request.
-    """
-    results = get_cheaper_products(limit=10)
-    if not results:
+    """Returns pre-computed price comparison from startup cache — instant response."""
+    if not COMPARE_CACHE:
         return {"message": "Şu an karşılaştırma verisi bulunamadı."}
 
     lines = []
-    for r in results:
+    for r in COMPARE_CACHE:
         lines.append(
             f"✅ {r['our_name']} — Bizde: {r['our_price']:.0f} TL | "
             f"{r['comp_market']}: {r['comp_price']:.0f} TL | "
