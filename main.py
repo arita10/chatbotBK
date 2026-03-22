@@ -188,7 +188,7 @@ def compare():
                 f"   Bizde: {r['our_price']:.2f} TL | {r['comp_market']}: {r['comp_price']:.2f} TL | 💰 {r['savings']:.2f} TL tasarruf!"
             )
             if r.get("comp_url"):
-                line += f"\n   🔗 {r['comp_market']} linki: {r['comp_url']}"
+                line += f"\n   🔗 {r['comp_market']}: {r['comp_url']}"
             lines.append(line)
 
     if equal:
@@ -199,7 +199,7 @@ def compare():
                 f"   Bizde: {r['our_price']:.2f} TL | {r['comp_market']}: {r['comp_price']:.2f} TL"
             )
             if r.get("comp_url"):
-                line += f"\n   🔗 {r['comp_market']} linki: {r['comp_url']}"
+                line += f"\n   🔗 {r['comp_market']}: {r['comp_url']}"
             lines.append(line)
 
     return {"message": "\n".join(lines)}
