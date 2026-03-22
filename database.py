@@ -103,13 +103,24 @@ def _extract_unit(name):
     if match:
         qty = float(match.group(1).replace(",", "."))
         unit = match.group(2)
-        # Normalize to grams/ml
         if unit == "kg":
             return qty * 1000, "g"
         if unit in ("l", "lt"):
             return qty * 1000, "ml"
         return qty, unit
+    # Fallback: bare number >= 50 likely means grams (e.g. "kaşar 400 peyniri")
+    bare = re.search(r'\b(\d{2,4})\b', name)
+    if bare:
+        qty = float(bare.group(1))
+        if 50 <= qty <= 5000:
+            return qty, "g"
     return None, None
+
+
+def _extract_brand(name):
+    """Extract first word as brand name (lowercase)"""
+    words = name.strip().split()
+    return words[0].lower() if words else ""
 
 
 def get_cheaper_products(limit=10):
@@ -146,6 +157,7 @@ def get_cheaper_products(limit=10):
         our_price = float(our_price)
         our_qty, our_unit = _extract_unit(our_name)
 
+        our_brand = _extract_brand(our_name)
         best_score = 0
         best_match = None
         for comp in comp_products:
@@ -153,19 +165,20 @@ def get_cheaper_products(limit=10):
             # Skip bulk/multi-packs from competitors
             if re.search(r'\d+\s*x\s*\d+|\d+\'lü|\d+\'li|\'lü|\'li', comp_name.lower()):
                 continue
+            # Brand must match (first word)
+            if our_brand and _extract_brand(comp_name) != our_brand:
+                continue
             score = fuzz.token_sort_ratio(our_name.lower(), comp_name.lower())
             if score <= best_score:
                 continue
-
             # If our product has a unit, competitor must match it
             if our_qty and our_unit:
                 comp_qty, comp_unit = _extract_unit(comp_name)
                 if not comp_qty or comp_unit != our_unit:
                     continue
-                # Allow 20% tolerance in quantity (e.g. 130g vs 135g is ok)
-                if abs(our_qty - comp_qty) / our_qty > 0.20:
+                # Allow 10% tolerance in quantity (e.g. 330g vs 360g is ok)
+                if abs(our_qty - comp_qty) / our_qty > 0.10:
                     continue
-
             best_score = score
             best_match = comp
 
