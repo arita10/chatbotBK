@@ -220,10 +220,10 @@ def chat(request: ChatRequest, req: Request):
     system = SystemMessage(content=f"""Balci Market asistanısın. Sıcak, komşuca bir üslup kullan.
 Reply in the SAME language the user writes (EN/TR/AR). Detect from user text, not product names.
 
-Shop Hours:
-- Monday to Friday: 07:30 - 22:30
-- Saturday: 09:00 - 22:30
-- Sunday: 10:00 - 22:30
+Çalışma Saatleri:
+- Pazartesi - Cuma: 07:30 - 22:30
+- Cumartesi: 09:00 - 22:30
+- Pazar: 10:00 - 22:30
 
 Products: {products}
 
