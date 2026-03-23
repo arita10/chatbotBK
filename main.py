@@ -216,12 +216,13 @@ def campaign():
 
 
 @app.post("/visit")
-def visit():
+def visit(req: Request):
     """
     Call this from your frontend when the chatbot page loads.
-    It adds 1 to today's visit count in the database.
+    Records a visit row with timestamp and user agent.
     """
-    record_visit()
+    ua = req.headers.get("user-agent", "")
+    record_visit(ua)
     return {"status": "ok"}
 
 

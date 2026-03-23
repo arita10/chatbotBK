@@ -89,15 +89,16 @@ def save_feedback(feedback_type, message, user_name="", user_phone="", session_i
     response.raise_for_status()
 
 
-def record_visit():
-    # Upsert today's visit count using Supabase REST API
-    # First try to increment, if no row exists insert one
-    requests.post(
+def record_visit(user_agent=""):
+    data = {"user_agent": user_agent[:300] if user_agent else ""}
+    response = requests.post(
         f"{SUPABASE_URL}/rest/v1/ch_chatbot_visits",
-        headers={**_headers(), "Prefer": "resolution=merge-duplicates"},
-        json={"visit_date": "now()", "count": 1},
+        headers={**_headers(), "Prefer": "return=minimal"},
+        json=data,
         timeout=10,
     )
+    if not response.ok:
+        print(f"[record_visit ERROR] {response.status_code}: {response.text}")
 
 
 def _extract_unit(name):
