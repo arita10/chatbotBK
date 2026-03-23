@@ -89,6 +89,22 @@ def save_feedback(feedback_type, message, user_name="", user_phone="", session_i
     response.raise_for_status()
 
 
+def save_chat(session_id, user_message, bot_reply):
+    data = {
+        "session_id": session_id,
+        "user_message": user_message[:1000],
+        "bot_reply": bot_reply[:2000],
+    }
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/ch_chatbot_conversations",
+        headers={**_headers(), "Prefer": "return=minimal"},
+        json=data,
+        timeout=10,
+    )
+    if not response.ok:
+        print(f"[save_chat ERROR] {response.status_code}: {response.text}")
+
+
 def record_visit(user_agent=""):
     data = {"user_agent": user_agent[:300] if user_agent else ""}
     response = requests.post(

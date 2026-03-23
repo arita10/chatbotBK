@@ -7,7 +7,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
-from database import get_products_text, save_order, save_feedback, record_visit, get_cheaper_products
+from database import get_products_text, save_order, save_feedback, record_visit, get_cheaper_products, save_chat
 from telegram import send_message, send_photo, send_document
 
 load_dotenv()
@@ -340,8 +340,16 @@ Message: {user_message}
 From: {request.user_name or "Anonymous"}
 Phone: {request.user_phone or "Unknown"}
 """)
+        try:
+            save_chat(request.session_id, user_message, clean_reply)
+        except Exception:
+            pass
         return {"response": clean_reply}
 
+    try:
+        save_chat(request.session_id, user_message, reply)
+    except Exception:
+        pass
     return {"response": reply}
 
 
