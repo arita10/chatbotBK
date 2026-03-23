@@ -165,7 +165,7 @@ def welcome():
     NO AI call = zero token cost.
     """
     return {
-        "message": "Merhaba komşum! 👋 Ben Balci Market'in dijital asistanıyım. Samet Abi'nin dükkanına hoş geldiniz! 🛒\n\nFiyat sormak, sipariş vermek ya da sadece merhaba demek için buradayım. Biz büyük market değiliz ama sizin komşunuzuz — her zaman güler yüzle, en iyi fiyatla! 🏠✨\n\nNasıl yardımcı olabilirim?"
+        "message": "Merhaba komşum! 👋 Ben Balci Market'in dijital asistanıyım. Samet Abi'nin dükkanına hoş geldiniz! 🛒\n\nFiyat sormak, sipariş vermek ya da aklınıza takılan bir şeyi sormak için buradayım. Biz büyük market değiliz ama sizin komşunuzuz — her zaman güler yüzle, en iyi fiyatla! 🏠✨\n\nNasıl yardımcı olabilirim?"
     }
 
 
@@ -211,7 +211,7 @@ def campaign():
     Returns the static campaign message. NO AI call = zero token cost.
     """
     return {
-        "message": "🌟 BAYRAM FIRSATLARI BAŞLADI! 🌟\n\nBayram temizliğinin yıldızları şimdi en dip fiyatlarla dükkanımızda:\n\n👉 Papia T. Kağıdı: 105 TL\n👉 Papia Havlu Kağıt: 135 TL\n👉 Mr. Oxy Yüzey Havlusu: 75 TL\n👉 Viking Çamaşır Suyu: 75 TL\n👉 Penax Gold Kapsül: 199 TL\n👉 Bingo 40'lı Kapsül: 239 TL\n\n✨ Erenler'in en hesaplı adresi! Hayırlı Bayramlar dileriz. ✨"
+        "message": "🌟 GÜNCEL FIRSATLAR 🌟\n\nŞu an aktif bir kampanyamız bulunmamaktadır.\nYeni fırsatlar için bizi takip etmeye devam edin! 😊\n\n✨ Erenler'in en hesaplı adresi — Balci Market! ✨"
     }
 
 
