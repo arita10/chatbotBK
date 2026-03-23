@@ -331,6 +331,8 @@ async def print_request(
     customer_name: str = Form(...),
     phone: str = Form(...),
     house_no: str = Form(...),
+    print_type: str = Form("Siyah Beyaz (5 TL/sayfa)"),
+    copies: int = Form(1),
     notes: str = Form(""),
     file: UploadFile = File(...),
 ):
@@ -357,6 +359,8 @@ async def print_request(
 Ad Soyad: {customer_name}
 Telefon: {phone}
 Daire / Ev No: {house_no}
+Baskı Türü: {print_type}
+Kopya Sayısı: {copies}
 Notlar: {notes or "Yok"}
 Dosya: {file.filename}"""
 
