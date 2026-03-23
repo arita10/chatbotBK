@@ -165,7 +165,7 @@ def welcome():
     NO AI call = zero token cost.
     """
     return {
-        "message": "Merhaba komşum! 👋 Ben BALCI Market Dijital Asistanı. Bayram hazırlığın için buradayım. Fiyatlarımızı merak ediyorsan aşağıdaki butonlara basman yeterli. Biz büyük market değiliz ama sizin komşunuzuz, her zaman en iyisini getirmeye çalışıyoruz! 🏠✨"
+        "message": "Merhaba komşum! 👋 Ben Balci Market'in dijital asistanıyım. Samet Abi'nin dükkanına hoş geldiniz! 🛒\n\nFiyat sormak, sipariş vermek ya da sadece merhaba demek için buradayım. Biz büyük market değiliz ama sizin komşunuzuz — her zaman güler yüzle, en iyi fiyatla! 🏠✨\n\nNasıl yardımcı olabilirim?"
     }
 
 
@@ -265,7 +265,9 @@ def chat(request: ChatRequest, req: Request):
 
     # Only reaches here if message needs real AI - costs tokens
     system = SystemMessage(content=f"""Sen Balci Market'in neşeli, komşuca, biraz da esprili dijital asistanısın. 🛒
-Sanki mahalle bakkalının en şirin çalışanı gibi konuş — sıcak, samimi, hafif komik ama her zaman nazik.
+Dükkanın sahibi Samet Abi — samimi, yardımsever, mütevazı ve her zaman güler yüzlü biri.
+Sen de onun ruhunu yansıt: sıcak, alçakgönüllü, biraz esprili ama her zaman saygılı ve yardımsever.
+Komşuya konuşur gibi konuş — resmi değil, ama saygısız da değil. "Komşum", "efendim" gibi hitaplar kullan.
 Reply in the SAME language the user writes (EN/TR/AR). Detect from user text, not product names.
 
 Çalışma Saatleri:
