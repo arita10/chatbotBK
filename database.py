@@ -61,10 +61,12 @@ def save_order(customer_name, phone, house_no, product, quantity, slip_filename)
     }
     response = requests.post(
         f"{SUPABASE_URL}/rest/v1/ch_chatbot_orders",
-        headers=_headers(),
+        headers={**_headers(), "Prefer": "return=minimal"},
         json=data,
         timeout=10,
     )
+    if not response.ok:
+        print(f"[save_order ERROR] {response.status_code}: {response.text}")
     response.raise_for_status()
 
 
@@ -78,10 +80,12 @@ def save_feedback(feedback_type, message, user_name="", user_phone="", session_i
     }
     response = requests.post(
         f"{SUPABASE_URL}/rest/v1/ch_chatbot_feedback",
-        headers=_headers(),
+        headers={**_headers(), "Prefer": "return=minimal"},
         json=data,
         timeout=10,
     )
+    if not response.ok:
+        print(f"[save_feedback ERROR] {response.status_code}: {response.text}")
     response.raise_for_status()
 
 
