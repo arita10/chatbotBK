@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
 from database import get_products_text, save_order, save_feedback, record_visit, get_cheaper_products
-from telegram import send_message, send_photo
+from telegram import send_message, send_photo, send_document
 
 load_dotenv()
 
@@ -320,8 +320,50 @@ Phone: {request.user_phone or "Unknown"}
     return {"response": reply}
 
 
-# Create uploads folder for payment slips
+# Create uploads folder for payment slips and print files
 Path("uploads").mkdir(exist_ok=True)
+Path("prints").mkdir(exist_ok=True)
+
+
+@app.post("/print")
+async def print_request(
+    req: Request,
+    customer_name: str = Form(...),
+    phone: str = Form(...),
+    house_no: str = Form(...),
+    notes: str = Form(""),
+    file: UploadFile = File(...),
+):
+    check_rate_limit(req.client.host)
+
+    if len(customer_name) > 100 or len(phone) > 20 or len(house_no) > 50:
+        raise HTTPException(status_code=400, detail="Input too long.")
+
+    # Allow common file types for printing
+    ALLOWED = {"jpg", "jpeg", "png", "pdf", "doc", "docx", "xls", "xlsx", "txt"}
+    ext = file.filename.split(".")[-1].lower() if file.filename else ""
+    if ext not in ALLOWED:
+        raise HTTPException(status_code=400, detail="Desteklenmeyen dosya türü.")
+
+    # Save file
+    safe_name = f"print_{customer_name}_{phone}.{ext}"
+    file_path = f"prints/{safe_name}"
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    # Send info + file to Telegram
+    caption = f"""🖨️ YENİ BASKI TALEBİ - Balci Market
+
+Ad Soyad: {customer_name}
+Telefon: {phone}
+Daire / Ev No: {house_no}
+Notlar: {notes or "Yok"}
+Dosya: {file.filename}"""
+
+    send_message(caption)
+    send_document(file_path, caption=f"📎 {file.filename} — {customer_name} ({phone})")
+
+    return {"status": "ok", "message": "Baskı talebiniz alındı! En kısa sürede hazırlanacak. 🖨️"}
 
 
 class OrderRequest(BaseModel):

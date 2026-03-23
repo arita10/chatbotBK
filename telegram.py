@@ -24,6 +24,15 @@ def send_photo(photo_path, caption):
             "caption": caption
         }, files={"photo": photo})
 
+def send_document(file_path, caption):
+    """Send any file (PDF, Word, image, etc.) to the owner via Telegram."""
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument"
+    with open(file_path, "rb") as f:
+        requests.post(url, data={
+            "chat_id": CHAT_ID,
+            "caption": caption
+        }, files={"document": f})
+
 if __name__ == "__main__":
     send_message("Hello from Balci Market Chatbot!")
     print("Message sent to Telegram!")
