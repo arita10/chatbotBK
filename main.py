@@ -328,9 +328,10 @@ Path("prints").mkdir(exist_ok=True)
 @app.post("/print")
 async def print_request(
     req: Request,
-    customer_name: str = Form(...),
-    phone: str = Form(...),
-    house_no: str = Form(...),
+    location: str = Form("inshop"),  # 'inshop' or 'delivery'
+    customer_name: str = Form(""),
+    phone: str = Form(""),
+    house_no: str = Form(""),
     print_type: str = Form("Siyah Beyaz (5 TL/sayfa)"),
     copies: int = Form(1),
     notes: str = Form(""),
@@ -348,13 +349,15 @@ async def print_request(
         raise HTTPException(status_code=400, detail="Desteklenmeyen dosya türü.")
 
     # Save file
-    safe_name = f"print_{customer_name}_{phone}.{ext}"
+    safe_prefix = f"{customer_name}_{phone}" if customer_name else "inshop"
+    safe_name = f"print_{safe_prefix}.{ext}"
     file_path = f"prints/{safe_name}"
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # Send info + file to Telegram
-    caption = f"""🖨️ YENİ BASKI TALEBİ - Balci Market
+    # Build Telegram notification
+    if location == "delivery":
+        caption = f"""🖨️ YENİ BASKI TALEBİ (Eve Teslimat) - Balci Market
 
 Ad Soyad: {customer_name}
 Telefon: {phone}
@@ -363,9 +366,17 @@ Baskı Türü: {print_type}
 Kopya Sayısı: {copies}
 Notlar: {notes or "Yok"}
 Dosya: {file.filename}"""
+    else:
+        caption = f"""🖨️ YENİ BASKI TALEBİ (Mağazadan) - Balci Market
+
+Baskı Türü: {print_type}
+Kopya Sayısı: {copies}
+Notlar: {notes or "Yok"}
+Dosya: {file.filename}"""
 
     send_message(caption)
-    send_document(file_path, caption=f"📎 {file.filename} — {customer_name} ({phone})")
+    doc_caption = f"📎 {file.filename}" + (f" — {customer_name} ({phone})" if customer_name else "")
+    send_document(file_path, caption=doc_caption)
 
     return {"status": "ok", "message": "Baskı talebiniz alındı! En kısa sürede hazırlanacak. 🖨️"}
 
