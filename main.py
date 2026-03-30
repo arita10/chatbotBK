@@ -258,6 +258,10 @@ def chat(request: ChatRequest, req: Request):
     if not request.history:
         quick = get_quick_reply(user_message)
         if quick:
+            try:
+                save_chat(request.session_id, user_message, quick)
+            except Exception:
+                pass
             return {"response": quick}
 
     # ---- TOKEN SAVING METHOD 3: Use cached products ----
@@ -465,9 +469,15 @@ async def order(
             f.write(await slip.read())
 
     # Save order to database
-    save_order(customer_name, phone, house_no, product, quantity, slip_filename)
+    db_saved = True
+    try:
+        save_order(customer_name, phone, house_no, product, quantity, slip_filename)
+    except Exception as e:
+        db_saved = False
+        print(f"[order DB SAVE FAILED] {e}")
 
     # Send Telegram notification to owner
+    db_warning = "" if db_saved else "\n⚠️ UYARI: Sipariş veritabanına kaydedilemedi!"
     message = f"""NEW ORDER - Balci Market
 
 Name: {customer_name}
@@ -475,7 +485,7 @@ Phone: {phone}
 House No: {house_no}
 Product: {product}
 Quantity: {quantity}
-Payment: {payment}
+Payment: {payment}{db_warning}
 """
     if payment == "transfer" and slip_filename:
         send_photo(f"uploads/{slip_filename}", message)
