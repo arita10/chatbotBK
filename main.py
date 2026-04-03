@@ -181,9 +181,6 @@ def debug_compare():
         headers=headers, timeout=15
     ).json()
 
-    # Show all essen products in sp_products
-    essen = [p for p in comp_products if 'essen' in p.get('product_name', '').lower()]
-
     # Find all matches above 60% for our products that contain 'essen'
     our_essen = [p for p in our_products if 'essen' in p.get('product_name', '').lower()]
     matches = []
@@ -206,14 +203,39 @@ def debug_compare():
             "score": best_score,
         })
 
-    # Show all markets in sp_products
     markets = list(set(p.get('market_name','') for p in comp_products))
-
-    # Sample our products
     our_sample = [p['product_name'] for p in our_products[:30]]
-
-    # Sample competitor products
     comp_sample = [f"{p['product_name']} ({p['market_name']})" for p in comp_products[:30]]
+
+    # Show ALL matches (cheaper, equal, expensive) for all our products
+    all_matches = []
+    for our in our_products:
+        our_name = our['product_name']
+        our_price = float(our.get('sale_price') or 0)
+        our_brand = our_name.strip().split()[0].lower() if our_name.strip() else ''
+        best_score = 0
+        best = None
+        for comp in comp_products:
+            cn = comp.get('product_name','')
+            if our_brand and our_brand not in cn.lower():
+                continue
+            score = fuzz.token_sort_ratio(our_name.lower(), cn.lower())
+            if score > best_score:
+                best_score = score
+                best = comp
+        if best_score >= 60:
+            try:
+                cp = float(str(best['latest_price']).replace(',','.').replace(' TL','').strip())
+            except:
+                cp = None
+            all_matches.append({
+                "our": our_name, "our_price": our_price,
+                "comp": best['product_name'], "market": best['market_name'],
+                "comp_price": cp, "score": best_score,
+                "cheaper": our_price < cp if cp else None
+            })
+
+    all_matches.sort(key=lambda x: x['score'], reverse=True)
 
     return {
         "our_product_count": len(our_products),
@@ -221,10 +243,7 @@ def debug_compare():
         "markets_in_sp": markets,
         "our_sample": our_sample,
         "comp_sample": comp_sample,
-        "essen_in_sp_products_count": len(essen),
-        "essen_in_sp_products_sample": essen[:20],
-        "our_essen_products": our_essen[:20],
-        "matches": matches[:30],
+        "all_matches_above_60": all_matches[:50],
     }
 
 
