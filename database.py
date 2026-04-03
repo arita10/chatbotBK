@@ -160,18 +160,23 @@ def get_cheaper_products(limit=10):
     our_products = our_resp.json()
 
     comp_resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price,product_url&market_name=neq.Bizim Toptan&limit=2000",
-        headers=_headers(), timeout=10
+        f"{SUPABASE_URL}/rest/v1/sp_products?select=product_name,market_name,latest_price,product_url&market_name=neq.Bizim Toptan&limit=5000",
+        headers=_headers(), timeout=15
     )
     comp_resp.raise_for_status()
     comp_products = comp_resp.json()
 
     import re
+    # Products to exclude from comparison (one-off items, not regular stock)
+    EXCLUDE_NAMES = {"hindistan cevizi"}
+
     cheaper = []
     equal = []
 
     for our in our_products:
         our_name = our.get("product_name", "")
+        if our_name.lower().strip() in EXCLUDE_NAMES:
+            continue
         our_price = our.get("sale_price")
         if not our_price or not our_name:
             continue
@@ -186,8 +191,8 @@ def get_cheaper_products(limit=10):
             # Skip bulk/multi-packs from competitors
             if re.search(r'\d+\s*x\s*\d+|\d+\'lü|\d+\'li|\'lü|\'li', comp_name.lower()):
                 continue
-            # Brand must match (first word)
-            if our_brand and _extract_brand(comp_name) != our_brand:
+            # Brand must appear somewhere in competitor name (not just first word)
+            if our_brand and our_brand not in comp_name.lower():
                 continue
             score = fuzz.token_sort_ratio(our_name.lower(), comp_name.lower())
             if score <= best_score:
