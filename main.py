@@ -300,7 +300,27 @@ def campaign():
     Returns the static campaign message. NO AI call = zero token cost.
     """
     return {
-        "message": "🌟 GÜNCEL FIRSATLAR 🌟\n\nŞu an aktif bir kampanyamız bulunmamaktadır.\nYeni fırsatlar için bizi takip etmeye devam edin! 😊\n\n✨ Erenler'in en hesaplı adresi — Balci Market! ✨"
+        "message": (
+            "🍫 ÇİKOLATA ŞENLIĞI — SADECE 1 HAFTA! 🍫\n"
+            "━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "🟡 ÜLKER\n"
+            "• Bol Sütlü Kare 60g       67 → 50 TL 🔥\n"
+            "• Antep Fıstıklı 14g        22 → 18 TL\n"
+            "• Sütlü Çikolata 33g        47 → 40 TL\n\n"
+            "🔴 ETİ\n"
+            "• Sütlü Çikolata 60g        70 → 50 TL 🔥\n"
+            "• Fındıklı Kare 60g         70 → 50 TL 🔥\n"
+            "• Antep Fıstıklı 60g       105 → 90 TL\n"
+            "• Karam Bitter Antep %54 60g 102 → 90 TL\n"
+            "• Çuklota Bademli 30g       55 → 50 TL\n"
+            "• Çikolata 7g               sadece 8 TL 🎉\n"
+            "• İçibol %27 Fındıklı      39.90 → 35 TL\n\n"
+            "🌽 DORITOS\n"
+            "• Tüm Doritos ürünleri      5 TL indirim!\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━\n"
+            "⏰ Kampanya sadece 1 hafta geçerli!\n"
+            "🏠 Erenler'in en hesaplı adresi — Balci Market ✨"
+        )
     }
 
 
