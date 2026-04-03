@@ -206,7 +206,21 @@ def debug_compare():
             "score": best_score,
         })
 
+    # Show all markets in sp_products
+    markets = list(set(p.get('market_name','') for p in comp_products))
+
+    # Sample our products
+    our_sample = [p['product_name'] for p in our_products[:30]]
+
+    # Sample competitor products
+    comp_sample = [f"{p['product_name']} ({p['market_name']})" for p in comp_products[:30]]
+
     return {
+        "our_product_count": len(our_products),
+        "comp_product_count": len(comp_products),
+        "markets_in_sp": markets,
+        "our_sample": our_sample,
+        "comp_sample": comp_sample,
         "essen_in_sp_products_count": len(essen),
         "essen_in_sp_products_sample": essen[:20],
         "our_essen_products": our_essen[:20],
