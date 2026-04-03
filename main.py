@@ -259,7 +259,7 @@ def welcome():
 
 
 @app.get("/compare")
-def compare():
+def compare(session_id: str = ""):
     """Returns pre-computed price comparison from startup cache — instant response."""
     cheaper = COMPARE_CACHE.get("cheaper", [])
     equal = COMPARE_CACHE.get("equal", [])
@@ -291,37 +291,45 @@ def compare():
                 line += f"\n   🔗 {r['comp_market']}: {r['comp_url']}"
             lines.append(line)
 
-    return {"message": "\n".join(lines)}
+    msg = "\n".join(lines)
+    try:
+        save_chat(session_id, "💸 Rakipten Ucuz Ürünler", msg)
+    except Exception:
+        pass
+    return {"message": msg}
 
 
 @app.get("/campaign")
-def campaign():
+def campaign(session_id: str = ""):
     """
     Returns the static campaign message. NO AI call = zero token cost.
     """
-    return {
-        "message": (
-            "🍫 ÇİKOLATA ŞENLIĞI — SADECE 1 HAFTA! 🍫\n"
-            "━━━━━━━━━━━━━━━━━━━━━\n\n"
-            "🟡 ÜLKER\n"
-            "• Bol Sütlü Kare 60g       67 → 50 TL 🔥\n"
-            "• Antep Fıstıklı 14g        22 → 18 TL\n"
-            "• Sütlü Çikolata 33g        47 → 40 TL\n\n"
-            "🔴 ETİ\n"
-            "• Sütlü Çikolata 60g        70 → 50 TL 🔥\n"
-            "• Fındıklı Kare 60g         70 → 50 TL 🔥\n"
-            "• Antep Fıstıklı 60g       105 → 90 TL\n"
-            "• Karam Bitter Antep %54 60g 102 → 90 TL\n"
-            "• Çuklota Bademli 30g       55 → 50 TL\n"
-            "• Çikolata 7g               sadece 8 TL 🎉\n"
-            "• İçibol %27 Fındıklı      39.90 → 35 TL\n\n"
-            "🌽 DORITOS\n"
-            "• Tüm Doritos ürünleri      5 TL indirim!\n\n"
-            "━━━━━━━━━━━━━━━━━━━━━\n"
-            "⏰ Kampanya sadece 1 hafta geçerli!\n"
-            "🏠 Erenler'in en hesaplı adresi — Balci Market ✨"
-        )
-    }
+    msg = (
+        "🍫 ÇİKOLATA ŞENLİĞİ — SADECE 1 HAFTA! 🍫\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "🟡 ÜLKER\n"
+        "• Bol Sütlü Kare 60g        67 → 50 TL 🔥\n"
+        "• Antep Fıstıklı 14g         22 → 18 TL\n"
+        "• Sütlü Çikolata 33g         47 → 40 TL\n\n"
+        "🔴 ETİ\n"
+        "• Sütlü Çikolata 60g         70 → 50 TL 🔥\n"
+        "• Fındıklı Kare 60g          70 → 50 TL 🔥\n"
+        "• Antep Fıstıklı 60g        105 → 90 TL\n"
+        "• Karam Bitter Antep %54 60g 102 → 90 TL\n"
+        "• Çikolata Bademli 30g       55 → 50 TL\n"
+        "• Çikolata 7g                sadece 8 TL 🎉\n"
+        "• İçibol %27 Fındıklı       39.90 → 35 TL\n\n"
+        "🌽 DORITOS\n"
+        "• Tüm Doritos ürünleri       5 TL indirim!\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━\n"
+        "⏰ Kampanya sadece 1 hafta geçerli!\n"
+        "🏠 Erenler'in en hesaplı adresi — Balci Market ✨"
+    )
+    try:
+        save_chat(session_id, "🎉 Kampanyalar", msg)
+    except Exception:
+        pass
+    return {"message": msg}
 
 
 @app.post("/visit")
