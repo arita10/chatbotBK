@@ -248,14 +248,32 @@ def debug_compare():
 
 
 @app.get("/welcome")
-def welcome():
+def welcome(session_id: str = ""):
     """
     Returns the static welcome message shown when the chatbot first opens.
     NO AI call = zero token cost.
     """
-    return {
-        "message": "Merhaba komşum! 👋 Ben BALCI Market'in dijital asistanıyım. Hoş geldiniz! 🛒\n\nFiyat sormak, sipariş vermek ya da aklınıza takılan bir şeyi sormak için buradayım. Biz büyük market değiliz ama sizin komşunuzuz — her zaman güler yüzle, en iyi fiyatla! 🏠✨\n\nNasıl yardımcı olabilirim?"
-    }
+    msg = "Merhaba komşum! 👋 Ben BALCI Market'in dijital asistanıyım. Hoş geldiniz! 🛒\n\nFiyat sormak, sipariş vermek ya da aklınıza takılan bir şeyi sormak için buradayım. Biz büyük market değiliz ama sizin komşunuzuz — her zaman güler yüzle, en iyi fiyatla! 🏠✨\n\nNasıl yardımcı olabilirim?"
+    try:
+        save_chat(session_id, "[opened chat]", msg)
+    except Exception:
+        pass
+    return {"message": msg}
+
+
+class LogRequest(BaseModel):
+    session_id: str = ""
+    user_message: str = ""
+    bot_reply: str = ""
+
+@app.post("/log")
+def log_chat(request: LogRequest):
+    """Silently save a conversation turn — used for button clicks that bypass /chat."""
+    try:
+        save_chat(request.session_id, request.user_message[:500], request.bot_reply[:500])
+    except Exception:
+        pass
+    return {"status": "ok"}
 
 
 @app.get("/compare")
