@@ -298,16 +298,6 @@ def compare(session_id: str = ""):
                 line += f"\n   🔗 {r['comp_market']}: {r['comp_url']}"
             lines.append(line)
 
-    if equal:
-        lines.append("\n\n🤝 AYNI FİYAT:\n")
-        for r in equal:
-            line = (
-                f"🟰 {r['our_name']}\n"
-                f"   Bizde: {r['our_price']:.2f} TL | {r['comp_market']}: {r['comp_price']:.2f} TL"
-            )
-            if r.get("comp_url"):
-                line += f"\n   🔗 {r['comp_market']}: {r['comp_url']}"
-            lines.append(line)
 
     msg = "\n".join(lines)
     try:
