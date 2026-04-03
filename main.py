@@ -1,3 +1,4 @@
+import os
 import time
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -155,6 +156,61 @@ def debug_products():
         "status": "loaded" if count > 0 else "failed",
         "product_count": count,
         "sample": PRODUCTS_CACHE[:300]
+    }
+
+
+@app.get("/debug/compare")
+def debug_compare():
+    """Show all matched pairs (cheaper, equal, and MORE EXPENSIVE) for debugging."""
+    import requests as req_lib
+    from rapidfuzz import fuzz
+
+    headers = {
+        "apikey": os.getenv("SUPABASE_KEY"),
+        "Authorization": f"Bearer {os.getenv('SUPABASE_KEY')}",
+    }
+    supabase_url = os.getenv("SUPABASE_URL")
+
+    our_products = req_lib.get(
+        f"{supabase_url}/rest/v1/ch_products?select=product_name,sale_price",
+        headers=headers, timeout=15
+    ).json()
+
+    comp_products = req_lib.get(
+        f"{supabase_url}/rest/v1/sp_products?select=product_name,market_name,latest_price&limit=3000",
+        headers=headers, timeout=15
+    ).json()
+
+    # Show all essen products in sp_products
+    essen = [p for p in comp_products if 'essen' in p.get('product_name', '').lower()]
+
+    # Find all matches above 60% for our products that contain 'essen'
+    our_essen = [p for p in our_products if 'essen' in p.get('product_name', '').lower()]
+    matches = []
+    for our in our_essen:
+        our_name = our['product_name']
+        our_price = float(our.get('sale_price') or 0)
+        best_score = 0
+        best = None
+        for comp in comp_products:
+            score = fuzz.token_sort_ratio(our_name.lower(), comp['product_name'].lower())
+            if score > best_score:
+                best_score = score
+                best = comp
+        matches.append({
+            "our": our_name,
+            "our_price": our_price,
+            "best_match": best['product_name'] if best else None,
+            "best_market": best['market_name'] if best else None,
+            "comp_price": best['latest_price'] if best else None,
+            "score": best_score,
+        })
+
+    return {
+        "essen_in_sp_products_count": len(essen),
+        "essen_in_sp_products_sample": essen[:20],
+        "our_essen_products": our_essen[:20],
+        "matches": matches[:30],
     }
 
 
