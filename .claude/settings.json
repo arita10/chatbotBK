@@ -9,11 +9,23 @@
       "Bash(python run.py)",
       "Bash(venvScriptspython database.py)",
       "Bash(\"venv/Scripts/python\" database.py)",
-      "Bash(\"venv/Scripts/python\" -c \":*)"
+      "Bash(\"venv/Scripts/python\" -c \":*)",
+      "Bash(venv/Scripts/pip install:*)",
+      "Bash(venv/Scripts/python -c \":*)",
+      "Bash(python -c \"import sys; print\\(sys.stdin.buffer.read\\(\\).decode\\(''''utf-8'''', errors=''''replace''''\\)\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d['message'][:800]\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(repr\\(d['message'][:1200]\\)\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d['message']\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('ESSEN IN SP:', d['essen_in_sp_products_count']\\); print\\(\\); print\\('OUR ESSEN PRODUCTS:'\\); [print\\(' ', p\\) for p in d['our_essen_products'][:10]]; print\\(\\); print\\('MATCHES:'\\); [print\\(f'  {m[\\\\\"our\\\\\"]} -> {m[\\\\\"best_match\\\\\"]} \\({m[\\\\\"best_market\\\\\"]}\\) score={m[\\\\\"score\\\\\"]} our={m[\\\\\"our_price\\\\\"]} comp={m[\\\\\"comp_price\\\\\"]}'\\) for m in d['matches']]\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(list\\(d.keys\\(\\)\\)\\); print\\(str\\(d\\)[:500]\\)\")",
+      "Bash(python -c ':*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(list\\(d.keys\\(\\)\\)[:3]\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\msapi\\.claude\\projects\\c--Users-msapi-OneDrive-Documents-Balci-market-Chatbot",
-      "c:\\Users\\msapi\\OneDrive\\Documents\\Balci market\\ChatBotFront\\src"
+      "c:\\Users\\msapi\\OneDrive\\Documents\\Balci market\\ChatBotFront\\src",
+      "c:\\Users\\msapi\\OneDrive\\Documents\\Balci market\\ChatBotFront\\public",
+      "C:\\Users\\msapi\\OneDrive\\Documents\\Pro_datascrapping\\src\\agents"
     ]
   }
 }

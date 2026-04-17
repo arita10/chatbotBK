@@ -313,25 +313,7 @@ def campaign(session_id: str = ""):
     Returns the static campaign message. NO AI call = zero token cost.
     """
     msg = (
-        "🍫 ÇİKOLATA ŞENLİĞİ — SADECE 1 HAFTA! 🍫\n"
-        "━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🟡 ÜLKER\n"
-        "• Bol Sütlü Kare 60g        67 → 50 TL 🔥\n"
-        "• Antep Fıstıklı 14g         22 → 18 TL\n"
-        "• Sütlü Çikolata 33g         47 → 40 TL\n\n"
-        "🔴 ETİ\n"
-        "• Sütlü Çikolata 60g         70 → 50 TL 🔥\n"
-        "• Fındıklı Kare 60g          70 → 50 TL 🔥\n"
-        "• Antep Fıstıklı 60g        105 → 90 TL\n"
-        "• Karam Bitter Antep %54 60g 102 → 90 TL\n"
-        "• Çikolata Bademli 30g       55 → 50 TL\n"
-        "• Çikolata 7g                sadece 8 TL 🎉\n"
-        "• İçibol %27 Fındıklı       39.90 → 35 TL\n\n"
-        "🌽 DORITOS\n"
-        "• Tüm Doritos ürünleri       5 TL indirim!\n\n"
-        "━━━━━━━━━━━━━━━━━━━━━\n"
-        "⏰ Kampanya sadece 1 hafta geçerli!\n"
-        "🏠 Erenler'in en hesaplı adresi — Balci Market ✨"
+        "🎉 Yeni kampanyamızı başlatmaya çok yakınız! 🎉\n\n"
     )
     try:
         save_chat(session_id, "🎉 Kampanyalar", msg)
@@ -425,7 +407,7 @@ HATA YAPARSAM: Eğer kullanıcı "yanlış söyledin", "hata yaptın", "seni yen
 
 Products: {products}
 
-Delivery only: Fresh Milk 5L=200TL, Damacana Water=140TL.
+Delivery only: Fresh Milk 5L=225TL, Damacana Water=140TL.
 
 IMPORTANT: If customer is just ASKING about a product (e.g. "X var mı?", "do you have X?", "X fiyatı?"), answer normally using the product list above. DO NOT say it's unavailable for order unless they explicitly say "sipariş", "order", "almak istiyorum", "teslim et" etc.
 
